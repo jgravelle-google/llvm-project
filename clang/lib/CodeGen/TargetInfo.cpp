@@ -27,6 +27,7 @@
 #include "llvm/ADT/Twine.h"
 #include "llvm/IR/DataLayout.h"
 #include "llvm/IR/Type.h"
+#include "llvm/Support/LEB128.h"
 #include "llvm/Support/raw_ostream.h"
 #include <algorithm>    // std::sort
 
@@ -777,6 +778,38 @@ public:
         llvm::AttrBuilder B;
         B.addAttribute("wasm-import-name", Attr->getImportName());
         Fn->addAttributes(llvm::AttributeList::FunctionIndex, B);
+      }
+      if (const auto *Attr = FD->getAttr<WebAssemblyCustomSectionAttr>()) {
+        llvm::Module &M = CGM.getModule();
+        llvm::LLVMContext &Context = CGM.getLLVMContext();
+        llvm::NamedMDNode *MD =
+            M.getOrInsertNamedMetadata("wasm.custom_sections");
+
+        SmallVector<llvm::Metadata *, 2> Operands;
+        // Operands.push_back(llvm::ConstantAsMetadata::get(FD));
+
+        llvm::StringRef Data = Attr->getData();
+        uint8_t LenBuffer[32];
+        unsigned LebSize = llvm::encodeULEB128(Data.size(), (uint8_t*)LenBuffer);
+        char LenData[LebSize + Data.size() + 1];
+        for (unsigned i = 0; i < LebSize; ++i) {
+          LenData[i] = LenBuffer[i];
+        }
+        for (unsigned i = 0; i < Data.size(); ++i) {
+          LenData[i + LebSize] = Data[i];
+        }
+        LenData[LebSize + Data.size()] = 0;
+        // llvm::StringRef LenData = std::string((char*)LenBuffer, LebSize) + Data.str();
+        llvm::errs() << "Attr Data: " << Data << "\n"
+          << "  Len: " << Data.size() << "\n"
+          << "  LEB len: " << LebSize << "\n"
+          << "  Final: " << LenData << "\n";
+
+        Operands.push_back(llvm::MDString::get(Context, Attr->getSectionName()));
+        Operands.push_back(llvm::MDString::get(Context, LenData));
+
+        MD->addOperand(llvm::MDNode::get(Context, Operands));
+        MD->dump();
       }
     }
 

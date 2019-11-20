@@ -3908,6 +3908,14 @@ For more information see
 or `msvc documentation <https://docs.microsoft.com/pl-pl/cpp/cpp/selectany>`_.
 }]; }
 
+def WebAssemblyCustomSectionDocs : Documentation {
+  let Category = DocCatFunction;
+  let Content = [{
+Clang supports the ``__attribute__((custom_section(<name>, <data>)))`` 
+attribute for the WebAssembly target. <TODO: More>
+  }];
+}
+
 def WebAssemblyImportModuleDocs : Documentation {
   let Category = DocCatFunction;
   let Content = [{

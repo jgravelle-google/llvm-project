@@ -1571,6 +1571,14 @@ def AMDGPUNumVGPR : InheritableAttr {
   let Subjects = SubjectList<[Function], ErrorDiag, "kernel functions">;
 }
 
+def WebAssemblyCustomSection : InheritableAttr,
+                              TargetSpecificAttr<TargetWebAssembly> {
+  let Spellings = [Clang<"custom_section">];
+  let Args = [StringArgument<"SectionName">, StringArgument<"Data">];
+  let Documentation = [WebAssemblyCustomSectionDocs];
+  let Subjects = SubjectList<[Function, Field], ErrorDiag>;
+}
+
 def WebAssemblyImportModule : InheritableAttr,
                               TargetSpecificAttr<TargetWebAssembly> {
   let Spellings = [Clang<"import_module">];

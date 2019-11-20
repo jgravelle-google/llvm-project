@@ -5620,6 +5620,31 @@ static void handleAVRSignalAttr(Sema &S, Decl *D, const ParsedAttr &AL) {
   handleSimpleAttribute<AVRSignalAttr>(S, D, AL);
 }
 
+static void handleWebAssemblyCustomSectionAttr(Sema &S, Decl *D, const ParsedAttr &AL) {
+  // if (!isFunctionOrMethod(D)) {
+  //   S.Diag(D->getLocation(), diag::warn_attribute_wrong_decl_type)
+  //       << "'custom_section'" << ExpectedFunction;
+  //   return;
+  // }
+
+  auto *FD = cast<FunctionDecl>(D);
+  if (FD->isThisDeclarationADefinition()) {
+    S.Diag(D->getLocation(), diag::err_alias_is_definition) << FD << 0;
+    return;
+  }
+
+  StringRef Name;
+  StringRef Data;
+  SourceLocation ArgLoc;
+  if (!S.checkStringLiteralArgumentAttr(AL, 0, Name, &ArgLoc))
+    return;
+  if (!S.checkStringLiteralArgumentAttr(AL, 1, Data, &ArgLoc))
+    return;
+
+  FD->addAttr(::new (S.Context)
+                  WebAssemblyCustomSectionAttr(S.Context, AL, Name, Data));
+}
+
 static void handleWebAssemblyImportModuleAttr(Sema &S, Decl *D, const ParsedAttr &AL) {
   if (!isFunctionOrMethod(D)) {
     S.Diag(D->getLocation(), diag::warn_attribute_wrong_decl_type)
@@ -6495,6 +6520,9 @@ static void ProcessDeclAttribute(Sema &S, Scope *scope, Decl *D,
     break;
   case ParsedAttr::AT_AVRSignal:
     handleAVRSignalAttr(S, D, AL);
+    break;
+  case ParsedAttr::AT_WebAssemblyCustomSection:
+    handleWebAssemblyCustomSectionAttr(S, D, AL);
     break;
   case ParsedAttr::AT_WebAssemblyImportModule:
     handleWebAssemblyImportModuleAttr(S, D, AL);
