@@ -31,6 +31,8 @@ if(CLANG_ENABLE_STATIC_ANALYZER)
   add_clang_subdirectory(scan-view)
 endif()
 
+add_clang_subdirectory(em-import)
+
 # We support checking out the clang-tools-extra repository into the 'extra'
 # subdirectory. It contains tools developed as part of the Clang/LLVM project
 # on top of the Clang tooling platform. We keep them in a separate repository
