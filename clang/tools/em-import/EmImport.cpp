@@ -122,10 +122,12 @@ public:
   }
   bool TraverseDecl(Decl *D) {
     if (auto *TD = dyn_cast_or_null<RecordDecl>(D)) {
-      auto className = TD->getQualifiedNameAsString();
       if (auto *Attr = D->getAttr<AnnotateAttr>()) {
         auto note = Attr->getAnnotation();
         if (note.startswith(prefix)) {
+          auto data = StringRef(note.data() + prefixLen, note.size() - prefixLen);
+          auto pair = data.split(":");
+          auto className = pair.second;
           for (auto *sub : TD->decls()) {
             doTheThing(sub, className);
           }
